@@ -81,22 +81,12 @@ define([
                         "qValue": JSON.stringify(qDimensions)
                     }
                 ], false);
-                let qInterColumnSortOrder = [];
-                for (let i = 1; i < qDimensions.length; i++) {
-                    qInterColumnSortOrder.push(i);
-                }
-                //console.log("qInterColumnSortOrder", qInterColumnSortOrder);
-                $scope.backendApi.applyPatches([
-                    {
-                        "qPath": "/cube1/qHyperCubeDef/qInterColumnSortOrder",
-                        "qOp": "replace",
-                        "qValue": JSON.stringify(qInterColumnSortOrder)
-                    }
-                ], false);
+
+                $scope.PatchInterColumnSorter1();
 
                 $scope.cube1 = $scope.layout.cube1.qHyperCube;
                 console.log("cube1-dim", $scope.cube1);
-                $scope.ReloadCube1();
+                //$scope.ReloadCube1();
             });
             $scope.$watchCollection("layout.cube1Measures", function (newVal) {
                 let qMeasures = [];
@@ -121,58 +111,53 @@ define([
                         "qValue": JSON.stringify(qMeasures)
                     }
                 ], false);
+
+                $scope.PatchInterColumnSorter1();
+
                 $scope.cube1 = $scope.layout.cube1.qHyperCube;
                 console.log("cube1-mea", $scope.cube1);
             });
-
-            // Cube2
-            $scope.$watchCollection("layout.cube2Dimensions", function (newVal) {
-                let qDimensions = [];
-                angular.forEach(newVal, function (value, key) {
-                    if (value.dimension != "") {
-                        let qDimAux = JSON.parse(JSON.stringify(qDimensionTemplate));
-                        qDimAux.qDef.qLabel = [value.label];
-                        qDimAux.qDef.qFieldDefs = [value.dimension];
-                        qDimensions.push(qDimAux);
+            $scope.$watchCollection("layout.cube1.columnOrder", function (newValue) {
+                let qColumnOrder = [];
+                $scope.cube1ColumnNames = [];
+                //console.log("ColumnOrder", newValue);
+                let orderAux = newValue.split(",");
+                let dimLength = $scope.layout.cube1.qHyperCube.qDimensionInfo.length;
+                let meaLength = $scope.layout.cube1.qHyperCube.qMeasureInfo.length;
+                orderAux.forEach(function (currentValue, index, arr) {
+                    let indexAux = parseInt(currentValue);
+                    qColumnOrder.push(indexAux);
+                    if (indexAux < dimLength) {
+                        $scope.cube1ColumnNames.push(
+                            {
+                                qLabel: $scope.layout.cube1.qHyperCube.qDimensionInfo[indexAux].qLabel,
+                                haveIcon: $scope.layout.cube1Dimensions[indexAux].haveIcon
+                            }
+                        );
+                    } else if (indexAux < (dimLength + meaLength)) {
+                        $scope.cube1ColumnNames.push(
+                            {
+                                qLabel: [$scope.layout.cube1.qHyperCube.qMeasureInfo[indexAux - dimLength].qFallbackTitle],
+                                haveIcon: $scope.layout.cube1Measures[indexAux - dimLength].haveIcon
+                            }
+                        );
                     }
                 });
+                //console.log("qColumnOrder", qColumnOrder);
+                //console.log("cube1ColumnNames", $scope.cube1ColumnNames);
 
                 $scope.backendApi.applyPatches([
                     {
-                        "qPath": "/cube2/qHyperCubeDef/qDimensions",
+                        "qPath": "/cube1/qHyperCubeDef/qColumnOrder",
                         "qOp": "replace",
-                        "qValue": JSON.stringify(qDimensions)
+                        "qValue": JSON.stringify(qColumnOrder)
                     }
                 ], false);
-                $scope.cube2 = $scope.layout.cube2.qHyperCube;
-                console.log("cube2-dim", $scope.cube2);
+
+                $scope.PatchInterColumnSorter1();
+
+                $scope.cube1 = $scope.layout.cube1.qHyperCube;
             });
-            $scope.$watchCollection("layout.cube2Measures", function (newVal) {
-                let qMeasures = [];
-                angular.forEach(newVal, function (value, key) {
-                    if (value.measure != "") {
-                        let qMeasAux = JSON.parse(JSON.stringify(qMeasureTemplate));
-                        qMeasAux.qDef.qLabel = value.label;
-                        qMeasAux.qDef.qDef = value.measure;
-                        qMeasAux.qDef.qNumFormat.qType = value.qType ? value.qType : "F";
-                        qMeasAux.qDef.qNumFormat.qFmt = value.qFmt ? value.qFmt : "#,##0.00";
-                        qMeasAux.qDef.qNumFormat.qnDec = value.qnDec ? value.qnDec : 2;
-                        qMeasures.push(qMeasAux);
-                    }
-                });
-
-                $scope.backendApi.applyPatches([
-                    {
-                        "qPath": "/cube2/qHyperCubeDef/qMeasures",
-                        "qOp": "replace",
-                        "qValue": JSON.stringify(qMeasures)
-                    }
-                ], false);
-                $scope.cube2 = $scope.layout.cube2.qHyperCube;
-                console.log("cube2-mea", $scope.cube2);
-
-            });
-
             $scope.$watchCollection("layout.cube1.qHyperCube.qDataPages", function (newVal) {
                 $scope.ReloadCube1();
                 angular.element(document).ready(function () {
@@ -180,12 +165,26 @@ define([
                     $scope.LoadCharts();
                 });
             });
-            $scope.$watchCollection("layout.cube2.qHyperCube.qDataPages", function (newVal) {
-                angular.element(document).ready(function () {
-                    $scope.GroupDataChart();
-                    $scope.LoadCharts();
-                });
-            });
+
+            $scope.PatchInterColumnSorter1 = function () {
+                //console.log("qColumnOrder1", $scope.layout.cube1.qHyperCube.qColumnOrder);
+                let qColumnOrder = $scope.layout.cube1.qHyperCube.qColumnOrder;
+                let qInterColumnSortOrder = [1];
+                let dimLength = $scope.layout.cube1.qHyperCube.qDimensionInfo.length;
+                let meaLength = $scope.layout.cube1.qHyperCube.qMeasureInfo.length;
+
+                for (let i = 2; i < dimLength + meaLength; i++) {
+                    qInterColumnSortOrder.push(qColumnOrder[i]);
+                }
+                //console.log("qInterColumnSortOrder", qInterColumnSortOrder);
+                $scope.backendApi.applyPatches([
+                    {
+                        "qPath": "/cube1/qHyperCubeDef/qInterColumnSortOrder",
+                        "qOp": "replace",
+                        "qValue": JSON.stringify(qInterColumnSortOrder)
+                    }
+                ], false);
+            };
 
             $scope.ReloadCube1 = function () {
                 $scope.cube1 = $scope.layout.cube1.qHyperCube;
@@ -212,6 +211,59 @@ define([
                     //console.log("cube1Grouped", $scope.cube1Grouped);
                 }
             }
+
+            // Cube2
+            $scope.$watchCollection("layout.cube2Dimensions", function (newVal) {
+                let qDimensions = [];
+                angular.forEach(newVal, function (value, key) {
+                    if (value.dimension != "") {
+                        let qDimAux = JSON.parse(JSON.stringify(qDimensionTemplate));
+                        qDimAux.qDef.qLabel = [value.label];
+                        qDimAux.qDef.qFieldDefs = [value.dimension];
+                        qDimensions.push(qDimAux);
+                    }
+                });
+
+                $scope.backendApi.applyPatches([
+                    {
+                        "qPath": "/cube2/qHyperCubeDef/qDimensions",
+                        "qOp": "replace",
+                        "qValue": JSON.stringify(qDimensions)
+                    }
+                ], false);
+                $scope.cube2 = $scope.layout.cube2.qHyperCube;
+                //console.log("cube2-dim", $scope.cube2);
+            });
+            $scope.$watchCollection("layout.cube2Measures", function (newVal) {
+                let qMeasures = [];
+                angular.forEach(newVal, function (value, key) {
+                    if (value.measure != "") {
+                        let qMeasAux = JSON.parse(JSON.stringify(qMeasureTemplate));
+                        qMeasAux.qDef.qLabel = value.label;
+                        qMeasAux.qDef.qDef = value.measure;
+                        qMeasAux.qDef.qNumFormat.qType = value.qType ? value.qType : "F";
+                        qMeasAux.qDef.qNumFormat.qFmt = value.qFmt ? value.qFmt : "#,##0.00";
+                        qMeasAux.qDef.qNumFormat.qnDec = value.qnDec ? value.qnDec : 2;
+                        qMeasures.push(qMeasAux);
+                    }
+                });
+
+                $scope.backendApi.applyPatches([
+                    {
+                        "qPath": "/cube2/qHyperCubeDef/qMeasures",
+                        "qOp": "replace",
+                        "qValue": JSON.stringify(qMeasures)
+                    }
+                ], false);
+                $scope.cube2 = $scope.layout.cube2.qHyperCube;
+                console.log("cube2-mea", $scope.cube2);
+            });     
+            $scope.$watchCollection("layout.cube2.qHyperCube.qDataPages", function (newVal) {
+                angular.element(document).ready(function () {
+                    $scope.GroupDataChart();
+                    $scope.LoadCharts();
+                });
+            });
 
             // -------------------- CHARTS
             angular.element(document).ready(function () {
@@ -320,11 +372,13 @@ define([
 
             $scope.sFrame = false;
             $scope.showFrame = function (id) {
+                console.log("d: ", id);
                 console.log("id: ", $scope.layout.urlIframe, id);
                 $scope.sFrame = true;
                 $scope.idk =
                     $scope.layout.urlIframe
-                    + id.qNum
+                    + id
+                    console.log("link: ",$scope.idk);
             }
         }]
     };

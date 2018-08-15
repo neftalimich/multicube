@@ -3,10 +3,9 @@
         <thead>
             <tr>
                 <th ng-show="cube1IsGrouped"></th>
-                <th ng-repeat="mea in cube1.qDimensionInfo track by $index" ng-show="$index > 1 || ($index > 0 && !cube1IsGrouped)">
-                    {{mea.qLabel[0]}}
+                <th ng-repeat="col in cube1ColumnNames track by $index" ng-show="$index > 1 || ($index > 0 && !cube1IsGrouped)">
+                   {{col.qLabel[0]}}
                 </th>
-                <th ng-repeat="mea in cube1.qMeasureInfo" ng-bind="mea.qFallbackTitle" />
                 <th>
                     Gráfica
                 </th>
@@ -20,7 +19,7 @@
             </tr>
             <tr ng-repeat="row in group.data track by $index" ng-init="$rowIndex = $index">
                 <td rowspan="{{group.data.length}}" ng-show="$rowIndex == 0 && group.category != ''" class="text-center bg-white">
-                    <div class="group-index">{{$groupIndex}}</div>
+                    <div class="group-index">{{$groupIndex+1}}</div>
                 </td>
                 <td ng-repeat="col in row track by $index" ng-show="$index > 1 || ($index > 0 && !cube1IsGrouped)" ng-class="{'text-center': $index >= cube1.qDimensionInfo.length}">
                     <span ng-show="$index >= cube1.qDimensionInfo.length">
@@ -35,7 +34,9 @@
                     </span>
                     <span ng-show="$index < cube1.qDimensionInfo.length">
                         {{col.qText}}
-                        <img class="infoIco" src="/Extensions/multicube/question.png" ng-click="showFrame(row[0].qText)" ng-show="$index == 2" />
+                        <span ng-click="showFrame(row[0].qText)" ng-show="cube1ColumnNames[$index].haveIcon" class="text-info">
+                            <i class="lui-icon lui-icon--help"></i>
+                        </span>
                     </span>
                 </td>
                 <td>

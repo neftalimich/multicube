@@ -6,7 +6,7 @@ define([], function () {
                 qInitialDataFetch: [
                     {
                         qHeight: 100,
-                        qWidth: 10
+                        qWidth: 15
                     }
                 ],
                 qDimensions: [],
@@ -14,6 +14,7 @@ define([], function () {
                 qSuppressZero: false,
                 qSuppressMissing: false,
                 qMode: "S",
+                qColumnOrder:[0,1,3,2],
                 qInterColumnSortOrder: [],
                 qStateName: "$"
             }

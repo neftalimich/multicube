@@ -2,7 +2,7 @@
 	"name": "multicube",
 	"description": "Multicube extension",
 	"type": "visualization",
-	"version": "0.1.1.8",
+	"version": "0.1.2.0",
 	"author": "Neftalí Michelet",
 	"homepage": "",
 	"keywords": "qlik-sense, visualization",

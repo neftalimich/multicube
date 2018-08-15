@@ -36,6 +36,12 @@ define([], function () {
                                 label: "Category?",
                                 defaultValue: false
                             },
+                            icon: {
+                                type: "boolean",
+                                ref: "haveIcon",
+                                label: "Icono",
+                                defaultValue: false
+                            },
                             sortCriteria: {
                                 type: "string",
                                 component: "dropdown",
@@ -125,6 +131,12 @@ define([], function () {
                                 defaultValue: 2
                             }
                         }
+                    },
+                    columnOrder1: {
+                        type: "string",
+                        ref: "cube1.columnOrder",
+                        label: "Ordenar Columnas (0,1,2,...)",
+                        defaultValue: "0,1"
                     }
                 }
             },
